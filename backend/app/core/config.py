@@ -1,4 +1,4 @@
-from pydantic_settings import BaseSettings
+import os
 
 class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
@@ -10,7 +10,8 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     
     # Database
-    DATABASE_URL: str = "sqlite:///./autolink.db" # Default to local sqlite
+    # Vercel/Neon provides POSTGRES_URL or DATABASE_URL. We check both.
+    DATABASE_URL: str = os.getenv("POSTGRES_URL") or os.getenv("DATABASE_URL") or "sqlite:///./autolink.db"
     
     class Config:
         case_sensitive = True
