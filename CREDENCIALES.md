@@ -2,10 +2,10 @@
 
 Para probar la aplicación desde tu móvil, asegúrate de que ambos dispositivos estén en la misma red Wi-Fi.
 
-## 1. Configuración
+## 1. Configuración (NUBE ☁️)
 
-* **IP del Servidor:** `192.168.1.27` (Actualizada)
-* **Puerto:** `8000`
+* **Servidor:** `https://auto-link-steel.vercel.app`
+* **Estado:** Online 🟢 (Ya no depende de tu PC)
 
 ## 2. Usuarios para Pruebas
 
