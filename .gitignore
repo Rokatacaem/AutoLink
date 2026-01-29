@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+.idea/
+.vscode/
+*.sqlite3
+*.db
+backend/app.log
+backend/backend_server.log
+
+# Flutter
+mobile/.dart_tool/
+mobile/.packages
+mobile/build/
+mobile/.pub/
+mobile/pubspec.lock
+
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store

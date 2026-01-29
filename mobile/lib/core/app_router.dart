@@ -1,0 +1,37 @@
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import '../../features/auth/presentation/login_screen.dart';
+import '../../features/auth/presentation/register_screen.dart';
+import '../../features/client/presentation/home_screen.dart';
+import '../../features/client/presentation/ai_chat_screen.dart';
+import '../../features/mechanic/presentation/mechanic_home_screen.dart';
+
+final appRouter = GoRouter(
+  initialLocation: '/login',
+  routes: [
+    GoRoute(
+      path: '/login',
+      builder: (context, state) => const LoginScreen(),
+    ),
+    GoRoute(
+      path: '/register',
+      builder: (context, state) => const RegisterScreen(),
+    ),
+    GoRoute(
+      path: '/home', // Client Home
+      builder: (context, state) => const HomeScreen(),
+    ),
+    GoRoute(
+      path: '/diagnosis',
+      builder: (context, state) {
+        final vehicleId = state.uri.queryParameters['vehicleId'];
+        final vehicleName = state.uri.queryParameters['name'];
+        return AIChatScreen(vehicleId: vehicleId, vehicleName: vehicleName);
+      },
+    ),
+    GoRoute(
+      path: '/mechanic-home', // Mechanic Home
+      builder: (context, state) => const MechanicHomeScreen(),
+    ),
+  ],
+);
