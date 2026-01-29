@@ -29,7 +29,18 @@ class AuthRepository {
       await _storage.write(key: 'auth_token', value: token);
       return token;
     } on DioException catch (e) {
-      throw e.response?.data['detail'] ?? 'Login failed: ${e.message}';
+      final data = e.response?.data;
+      if (data is Map<String, dynamic>) {
+        final detail = data['detail'];
+        if (detail is List) {
+           throw detail.map((item) => item['msg'] ?? item).join('\n');
+        }
+        throw detail ?? 'Login failed: ${e.message}';
+      }
+      if (data is String) {
+        throw 'Server Error (${e.response?.statusCode}): $data';
+      }
+      throw 'Login failed: ${e.message}';
     }
   }
 
@@ -45,7 +56,20 @@ class AuthRepository {
         },
       );
     } on DioException catch (e) {
-      throw e.response?.data['detail'] ?? 'Registration failed: ${e.message}';
+      final data = e.response?.data;
+      if (data is Map<String, dynamic>) {
+        // Handle Validation Errors (List of errors) or Simple Error (String)
+        final detail = data['detail'];
+        if (detail is List) {
+           throw detail.map((e) => e['msg']).join('\n');
+        }
+        throw detail ?? 'Registration failed: ${e.message}';
+      }
+      // Handle HTML/String responses (Platform/Server errors)
+      if (data is String) {
+        throw 'Server Error (${e.response?.statusCode}): $data';
+      }
+      throw 'Registration failed: ${e.message}';
     }
   }
 
