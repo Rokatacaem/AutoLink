@@ -34,6 +34,9 @@ jobs:
       - name: Generate App Icons
         run: dart run flutter_launcher_icons
 
+      - name: Run Build Runner
+        run: dart run build_runner build --delete-conflicting-outputs
+
       - name: Build APK
         run: flutter build apk --release
 
@@ -51,3 +54,15 @@ jobs:
         with:
           name: web-build
           path: mobile/build/web
+
+      - name: Deploy to autolink-web
+        uses: cpina/github-action-push-to-another-repository@main
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+        with:
+          source-directory: 'mobile/build/web'
+          destination-github-username: 'Rokatacaem'
+          destination-repository-name: 'autolink-web'
+          user-email: 'rokatacaem@gmail.com'
+          target-branch: 'main'
+

@@ -19,9 +19,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authControllerProvider);
+    final authState = ref.watch(registerControllerProvider);
 
-    ref.listen(authControllerProvider, (previous, next) {
+    ref.listen(registerControllerProvider, (previous, next) {
       if (next.hasError) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error: ${next.error}'), backgroundColor: Colors.red),
@@ -100,7 +100,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 onPressed: authState.isLoading
                     ? null
                     : () {
-                        ref.read(authControllerProvider.notifier).register(
+                        ref.read(registerControllerProvider.notifier).register(
                               _emailCtrl.text.trim(),
                               _passCtrl.text.trim(),
                               _nameCtrl.text.trim(),

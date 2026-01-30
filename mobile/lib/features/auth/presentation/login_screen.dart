@@ -17,10 +17,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authControllerProvider);
-
+    final authState = ref.watch(loginControllerProvider);
+    
     // Listen for errors or success
-    ref.listen(authControllerProvider, (previous, next) {
+    ref.listen(loginControllerProvider, (previous, next) {
       if (next.hasError) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error: ${next.error}'), backgroundColor: Colors.red),
@@ -95,7 +95,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 onPressed: authState.isLoading
                     ? null
                     : () {
-                        ref.read(authControllerProvider.notifier).login(
+                        ref.read(loginControllerProvider.notifier).login(
                               _emailCtrl.text.trim(),
                               _passCtrl.text.trim(),
                             );

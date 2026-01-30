@@ -4,7 +4,7 @@ import '../data/auth_repository.dart';
 part 'auth_providers.g.dart';
 
 @riverpod
-class AuthController extends _$AuthController {
+class LoginController extends _$LoginController {
   @override
   AsyncValue<void> build() {
     return const AsyncValue.data(null);
@@ -15,6 +15,14 @@ class AuthController extends _$AuthController {
     state = await AsyncValue.guard(() async {
       await ref.read(authRepositoryProvider).login(email, password);
     });
+  }
+}
+
+@riverpod
+class RegisterController extends _$RegisterController {
+  @override
+  AsyncValue<void> build() {
+    return const AsyncValue.data(null);
   }
 
   Future<void> register(String email, String password, String fullName, String role) async {
