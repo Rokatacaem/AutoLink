@@ -55,14 +55,14 @@ jobs:
           name: web-build
           path: mobile/build/web
 
-      - name: Deploy to autolink-web
-        uses: cpina/github-action-push-to-another-repository@main
-        env:
-          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
-        with:
-          source-directory: 'mobile/build/web'
-          destination-github-username: 'Rokatacaem'
-          destination-repository-name: 'autolink-web'
-          user-email: 'rokatacaem@gmail.com'
-          target-branch: 'main'
+#      - name: Deploy to autolink-web
+#        uses: cpina/github-action-push-to-another-repository@main
+#        env:
+#          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+#        with:
+#          source-directory: 'mobile/build/web'
+#          destination-github-username: 'Rokatacaem'
+#          destination-repository-name: 'autolink-web'
+#          user-email: 'rokatacaem@gmail.com'
+#          target-branch: 'main'
 
