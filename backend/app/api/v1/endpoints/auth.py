@@ -25,23 +25,16 @@ def register(
     """
     logger.info(f"AUDIT[REGISTER_ATTEMPT]: Email={user_in.email}, Name={user_in.full_name}, Role={user_in.role}")
     
-    try:
-        user = crud_user.get_user_by_email(db, email=user_in.email)
-        if user:
-            logger.warning(f"AUDIT[REGISTER_FAIL]: Email={user_in.email} - User already exists")
-            raise HTTPException(
-                status_code=400,
-                detail="A user with this email already exists.",
-            )
-        user = crud_user.create_user(db, user_in=user_in)
-        logger.info(f"AUDIT[REGISTER_SUCCESS]: ID={user.id}, Email={user.email}")
-        return user
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"AUDIT[register_CRASH]: {str(e)}")
-        # TEMPORARY DEBUG: Return error in 500 response
-        raise HTTPException(status_code=500, detail=f"Server Error Debug: {str(e)}")
+    user = crud_user.get_user_by_email(db, email=user_in.email)
+    if user:
+        logger.warning(f"AUDIT[REGISTER_FAIL]: Email={user_in.email} - User already exists")
+        raise HTTPException(
+            status_code=400,
+            detail="A user with this email already exists.",
+        )
+    user = crud_user.create_user(db, user_in=user_in)
+    logger.info(f"AUDIT[REGISTER_SUCCESS]: ID={user.id}, Email={user.email}")
+    return user
 
 @router.post("/login", response_model=Token)
 def login(
