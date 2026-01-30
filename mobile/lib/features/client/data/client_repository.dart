@@ -27,6 +27,19 @@ class ClientRepository {
     }
   }
 
+  Future<void> createVehicle(Map<String, dynamic> vehicleData) async {
+    try {
+      final token = await _ref.read(authRepositoryProvider).getToken();
+      await _dio.post(
+        '/vehicles/',
+        data: vehicleData,
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+    } on DioException catch (e) {
+      throw e.response?.data['detail'] ?? 'Failed to create vehicle';
+    }
+  }
+
   Future<Map<String, dynamic>> diagnoseIssue(String description, int? vehicleId) async {
     try {
       final token = await _ref.read(authRepositoryProvider).getToken();

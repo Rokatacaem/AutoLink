@@ -16,6 +16,10 @@ class HomeScreen extends ConsumerWidget {
         title: const Text("My Garage"),
         actions: [
           IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: () => context.push('/add-vehicle'),
+          ),
+          IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () => ref.invalidate(myVehiclesProvider),
           ),
@@ -24,7 +28,20 @@ class HomeScreen extends ConsumerWidget {
       body: vehiclesAsync.when(
         data: (vehicles) {
           if (vehicles.isEmpty) {
-            return const Center(child: Text("No vehicles found. Add one!"));
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text("No vehicles found."),
+                  const SizedBox(height: 16),
+                  ElevatedButton.icon(
+                    onPressed: () => context.push('/add-vehicle'),
+                    icon: const Icon(Icons.add),
+                    label: const Text("Add One"),
+                  ),
+                ],
+              ),
+            );
           }
           return ListView.builder(
             padding: const EdgeInsets.all(16),

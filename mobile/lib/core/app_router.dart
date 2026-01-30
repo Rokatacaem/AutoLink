@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/register_screen.dart';
 import '../../features/client/presentation/home_screen.dart';
+import '../../features/client/presentation/add_vehicle_screen.dart';
 import '../../features/client/presentation/ai_chat_screen.dart';
 import '../../features/mechanic/presentation/mechanic_home_screen.dart';
 
@@ -32,6 +33,10 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/mechanic-home', // Mechanic Home
       builder: (context, state) => const MechanicHomeScreen(),
+    ),
+    GoRoute(
+      path: '/add-vehicle',
+      builder: (context, state) => const AddVehicleScreen(),
     ),
   ],
 );
