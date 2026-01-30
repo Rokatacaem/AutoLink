@@ -16,6 +16,10 @@ class HomeScreen extends ConsumerWidget {
         title: const Text("My Garage"),
         actions: [
           IconButton(
+            icon: const Icon(Icons.search),
+            onPressed: () => context.push('/mechanic-list'),
+          ),
+          IconButton(
             icon: const Icon(Icons.add),
             onPressed: () => context.push('/add-vehicle'),
           ),

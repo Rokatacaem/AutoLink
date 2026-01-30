@@ -56,4 +56,29 @@ class ClientRepository {
       throw e.response?.data['detail'] ?? 'Diagnosis failed';
     }
   }
+  Future<List<dynamic>> getMechanics() async {
+    try {
+      final token = await _ref.read(authRepositoryProvider).getToken();
+      final response = await _dio.get(
+        '/mechanics/',
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+      return response.data as List<dynamic>;
+    } on DioException catch (e) {
+      throw e.response?.data['detail'] ?? 'Failed to load mechanics';
+    }
+  }
+
+  Future<void> createServiceRequest(Map<String, dynamic> requestData) async {
+    try {
+      final token = await _ref.read(authRepositoryProvider).getToken();
+      await _dio.post(
+        '/services/',
+        data: requestData,
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+    } on DioException catch (e) {
+      throw e.response?.data['detail'] ?? 'Failed to book service';
+    }
+  }
 }
