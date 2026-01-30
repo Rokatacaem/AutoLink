@@ -11,6 +11,7 @@ api_router.include_router(mechanics.router, prefix="/mechanics", tags=["mechanic
 api_router.include_router(services.router, prefix="/services", tags=["services"])
 api_router.include_router(ai.router, prefix="/ai", tags=["ai"])
 
-# Import and include other routers here, e.g.:
+from app.api.v1.endpoints import health
+api_router.include_router(health.router, prefix="/health", tags=["health"])
 # from app.api.v1.endpoints import items
 # api_router.include_router(items.router, prefix="/items", tags=["items"])
