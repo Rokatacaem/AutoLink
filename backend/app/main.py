@@ -31,7 +31,10 @@ logging.basicConfig(
     handlers=handlers
 )
 
+import hashlib
+
 logger = logging.getLogger("uvicorn")
+logger.info(f"SECRET_KEY_SHA256: {hashlib.sha256(settings.SECRET_KEY.encode()).hexdigest()}")
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
 

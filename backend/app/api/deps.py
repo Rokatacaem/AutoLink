@@ -11,6 +11,9 @@ from app.schemas.user import TokenData
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{settings.API_V1_STR}/auth/login")
 
+import logging
+logger = logging.getLogger(__name__)
+
 def get_current_user(
     db: Session = Depends(get_db), 
     token: str = Depends(oauth2_scheme)
@@ -23,18 +26,49 @@ def get_current_user(
     )
     try:
         payload = jwt.decode(
-            token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
+            token, 
+            settings.SECRET_KEY, 
+            algorithms=[settings.ALGORITHM],
+            options={"leeway": 120}  # 2 minutes leeway for clock skew
         )
         email: str = payload.get("sub")
+        
+        # Manual claim validation since python-jose doesn't support 'require' option
         if email is None:
+            logger.warning("AUDIT[AUTH_FAIL]: Missing 'sub' claim in token")
             raise credentials_exception
+        if "exp" not in payload:
+             logger.warning("AUDIT[AUTH_FAIL]: Missing 'exp' claim in token")
+             raise credentials_exception
+        # if "iat" not in payload:
+        #      logger.warning("AUDIT[AUTH_FAIL]: Missing 'iat' claim in token")
+        #      raise credentials_exception
+             
         token_data = TokenData(email=email)
-    except JWTError:
+        
+        # Log successful decode for debug (remove int production if too noisy, but critical for diagnosis)
+        # logger.debug(f"JWT decoded successfully. Sub: {email}")
+
+    except jwt.ExpiredSignatureError:
+        logger.warning(f"AUDIT[AUTH_FAIL]: Token expired. Token preview: {token[:10]}...")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token expired",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    except jwt.JWTError as e:
+        logger.warning(f"AUDIT[AUTH_FAIL]: JWT validation error: {str(e)}")
         raise credentials_exception
     
     user = crud_user.get_user_by_email(db, email=token_data.email)
     if user is None:
+        logger.warning(f"AUDIT[AUTH_FAIL]: User not found for email: {token_data.email}")
         raise credentials_exception
+    
+    if not user.is_active:
+        logger.warning(f"AUDIT[AUTH_FAIL]: User inactive: {token_data.email}")
+        raise HTTPException(status_code=400, detail="Inactive user")
+        
     return user
 
 def get_current_active_user(
