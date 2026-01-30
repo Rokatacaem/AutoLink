@@ -14,6 +14,13 @@ class Settings(BaseSettings):
     # Vercel/Neon provides POSTGRES_URL or DATABASE_URL. We check both.
     DATABASE_URL: str = os.getenv("POSTGRES_URL") or os.getenv("DATABASE_URL") or "sqlite:///./autolink.db"
     
+    @property
+    def SYNC_DATABASE_URL(self) -> str:
+        """Ensures compatibility with SQLAlchemy (postgres:// -> postgresql://)"""
+        if self.DATABASE_URL and self.DATABASE_URL.startswith("postgres://"):
+            return self.DATABASE_URL.replace("postgres://", "postgresql://", 1)
+        return self.DATABASE_URL
+    
     class Config:
         case_sensitive = True
         env_file = ".env"
