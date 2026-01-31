@@ -32,7 +32,7 @@ class MechanicRepository {
       final token = await _ref.read(authRepositoryProvider).getToken();
       await _dio.patch(
         '/services/$requestId/status',
-        queryParameters: {'status': status},
+        data: {'status': status},
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
     } on DioException catch (e) {

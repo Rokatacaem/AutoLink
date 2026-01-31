@@ -9,9 +9,12 @@ class ServiceRequestCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Color statusColor = Colors.grey;
-    if (request['status'] == 'PENDING') statusColor = Colors.orange;
-    if (request['status'] == 'QUOTED') statusColor = Colors.blue;
-    if (request['status'] == 'ACCEPTED') statusColor = Colors.green;
+    final status = request['status'];
+    
+    if (status == 'PENDING') statusColor = Colors.orange;
+    if (status == 'ACCEPTED') statusColor = Colors.blue;
+    if (status == 'COMPLETED') statusColor = Colors.green;
+    if (status == 'REJECTED') statusColor = Colors.red;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
@@ -33,7 +36,7 @@ class ServiceRequestCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(color: statusColor.withOpacity(0.2), borderRadius: BorderRadius.circular(8)),
-                  child: Text(request['status'], style: TextStyle(color: statusColor, fontSize: 12)),
+                  child: Text(status, style: TextStyle(color: statusColor, fontSize: 12)),
                 )
               ],
             ),
@@ -44,24 +47,36 @@ class ServiceRequestCard extends StatelessWidget {
               request['description'],
               style: const TextStyle(color: Colors.white70),
             ),
+            if (request['scheduled_date'] != null)
+               Padding(
+                 padding: const EdgeInsets.only(top: 8),
+                 child: Text("📅 ${request['scheduled_date']}", style: const TextStyle(color: Colors.white60)),
+               ),
             const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                if (request['status'] == 'PENDING')
-                  ElevatedButton(
-                    onPressed: () => onStatusUpdate('QUOTED'),
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-                    child: const Text("Quote"),
+                if (status == 'PENDING') ...[
+                  OutlinedButton(
+                    onPressed: () => onStatusUpdate('REJECTED'),
+                    style: OutlinedButton.styleFrom(foregroundColor: Colors.red),
+                    child: const Text("Reject"),
                   ),
-                if (request['status'] == 'ACCEPTED')
+                  const SizedBox(width: 8),
+                  ElevatedButton(
+                    onPressed: () => onStatusUpdate('ACCEPTED'),
+                    style: ElevatedButton.styleFrom(backgroundColor: Colors.blue, foregroundColor: Colors.white),
+                    child: const Text("Accept"),
+                  ),
+                ],
+                if (status == 'ACCEPTED')
                   ElevatedButton(
                     onPressed: () => onStatusUpdate('COMPLETED'),
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                    child: const Text("Complete"),
+                    style: ElevatedButton.styleFrom(backgroundColor: Colors.green, foregroundColor: Colors.white),
+                    child: const Text("Complete Job"),
                   ),
-                 const SizedBox(width: 8),
-                 OutlinedButton(onPressed: () {}, child: const Text("View Details")),
+                if (status == 'COMPLETED' || status == 'REJECTED')
+                   const Text("Archived", style: TextStyle(color: Colors.grey)),
               ],
             )
           ],
