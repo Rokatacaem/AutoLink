@@ -5,19 +5,19 @@ from sqlalchemy.orm import Session
 
 from app import crud, models, schemas
 from app.api import deps
-from app.core.ai_client import ai_client
+from app.services.ai_service import ai_service
 
 router = APIRouter()
 
-@router.post("/diagnose", response_model=schemas.DiagnosisResponse)
-def diagnose_symptoms(
+@router.post("/diagnose", response_model=schemas.AIDiagnosticResponse)
+async def diagnose_symptoms(
     *,
     db: Session = Depends(deps.get_db),
     diagnosis_in: schemas.DiagnosisRequest,
     current_user: models.User = Depends(deps.get_current_active_user),
 ) -> Any:
     """
-    Analyze symptoms and provide a pre-diagnosis (Projected for AI integration).
+    Analyze symptoms and provide a structured AI diagnosis.
     """
     vehicle_context = None
     if diagnosis_in.vehicle_id:
@@ -34,8 +34,8 @@ def diagnose_symptoms(
             "vin": vehicle.vin
         }
 
-    # Call AI Client
-    result = ai_client.analyze_symptoms(
+    # Call AI Service
+    result = await ai_service.generate_diagnostic_report(
         description=diagnosis_in.description,
         locale=diagnosis_in.locale,
         vehicle_context=vehicle_context

@@ -9,119 +9,124 @@ class VehicleCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 24),
+      margin: const EdgeInsets.symmetric(horizontal: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFF141414),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.grey[800]!),
+        borderRadius: BorderRadius.circular(30),
+        // Simulating the metallic border/glow
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.5),
+            color: Colors.blueAccent.withOpacity(0.1),
             blurRadius: 20,
-            offset: const Offset(0, 10),
+            spreadRadius: 2,
+            offset: const Offset(0, 4),
           ),
         ],
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.grey[800]!,
+            Colors.black,
+            Colors.grey[900]!,
+          ],
+          stops: const [0.0, 0.5, 1.0],
+        ),
       ),
-      // Metallic Gradient Background Effect (Optional nuance)
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
-        child: Stack(
-          children: [
-            // Background Gradient
-            Positioned.fill(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      const Color(0xFF2A2A2A).withOpacity(0.3),
-                      Colors.black,
-                    ],
-                  ),
+      child: Container(
+        // Inner metallic border effect
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(30),
+          border: Border.all(
+            color: Colors.grey.withOpacity(0.3),
+            width: 1.5,
+          ),
+          gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                const Color(0xFF2C2F33),
+                const Color(0xFF141414), 
+              ]),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // Car Image
+              Expanded(
+                flex: 3,
+                child: Image.network(
+                  "https://purepng.com/public/uploads/large/purepng.com-white-toyota-yaris-carcarvehicletroy-1701527429117b3q2g.png",
+                  fit: BoxFit.contain,
                 ),
               ),
-            ),
-            
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
+              
+              const SizedBox(height: 10),
+
+              // Title and Subtitle
+              Column(
                 children: [
-                   // Header
-                   Row(
-                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                     children: [
-                       const Icon(Icons.star_border, color: Colors.grey),
-                       Text(
-                         "${vehicle['brand']} ${vehicle['model']}".toUpperCase(),
-                         style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontSize: 22),
-                       ),
-                       const Icon(Icons.more_horiz, color: Colors.grey),
-                     ],
-                   ),
-                   const SizedBox(height: 16),
-                   
-                   // Car Image Placeholder (Mocking the 3D car look)
-                   Container(
-                     height: 140,
-                     width: double.infinity,
-                     decoration: BoxDecoration(
-                       // Placeholder for car image
-                       image: const DecorationImage(
-                         image: NetworkImage("https://purepng.com/public/uploads/large/purepng.com-white-toyota-yaris-carcarvehicletroy-1701527429117b3q2g.png"),
-                         fit: BoxFit.contain,
-                       ),
-                     ),
-                   ),
-
-                   const SizedBox(height: 20),
-
-                   // Car Info
                    Text(
-                     "VIN: ${vehicle['vin']}",
-                     style: TextStyle(color: Colors.grey[600], letterSpacing: 1),
-                   ),
-                   
-                   const SizedBox(height: 24),
-
-                   // Action Buttons Row (Health, Service, Value)
-                   Row(
-                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                     children: [
-                       _buildActionButton(context, Icons.favorite, "Health", Colors.redAccent),
-                       _buildActionButton(context, Icons.build_circle, "Service", Colors.blueAccent, isActive: true),
-                       _buildActionButton(context, Icons.monetization_on, "Value", Colors.greenAccent),
-                     ],
-                   ),
+                    "${vehicle['brand'] ?? 'TOYOTA'} ${vehicle['model'] ?? 'YARIS'}".toUpperCase(),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    "Logo Tacas", // Placeholder or from data
+                    style: TextStyle(
+                      color: Colors.grey[400],
+                      fontSize: 14,
+                    ),
+                  ),
                 ],
               ),
-            ),
-          ],
+
+              const SizedBox(height: 24),
+
+              // Actions Row
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.4),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.white10),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _buildActionButton(Icons.favorite, "Salud", Colors.redAccent),
+                    // Use a divider if needed, but spaceAround handles it well
+                    _buildActionButton(Icons.build, "Servicio", const Color(0xFFB0BEC5)), // Silver/Blue-ish
+                    _buildActionButton(Icons.attach_money, "Valor", Colors.greenAccent),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 10),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildActionButton(BuildContext context, IconData icon, String label, Color color, {bool isActive = false}) {
+  Widget _buildActionButton(IconData icon, String label, Color color) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: isActive ? color.withOpacity(0.1) : Colors.transparent,
-            shape: BoxShape.circle,
-            border: Border.all(color: isActive ? color : Colors.transparent, width: 2),
-          ),
-          child: Icon(icon, color: isActive ? color : Colors.grey, size: 28),
-        ),
-        const SizedBox(height: 8),
+        Icon(icon, color: color, size: 32),
+        const SizedBox(height: 6),
         Text(
           label,
-          style: TextStyle(
-            color: isActive ? Colors.white : Colors.grey,
-            fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+          style: const TextStyle(
+            color: Colors.white70,
             fontSize: 12,
+            fontWeight: FontWeight.w500,
           ),
         ),
       ],
