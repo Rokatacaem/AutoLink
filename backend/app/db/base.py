@@ -3,3 +3,4 @@ from app.models.user import User
 from app.models.vehicle import Vehicle
 from app.models.mechanic import Mechanic
 from app.models.service import ServiceRequest
+from app.models.maintenance import MaintenanceLog
