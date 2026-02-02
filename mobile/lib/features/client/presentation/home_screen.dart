@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:carousel_slider/carousel_slider.dart'; // Ensure this is available
+import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'client_providers.dart';
 import 'vehicle_card.dart';
+import 'empty_garage_card.dart';
+import 'selected_vehicle_provider.dart';
+import '../../diagnostics/presentation/panic_button.dart';
+import '../../diagnostics/data/diagnostic_state.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -13,8 +17,20 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  int _currentVehicleIndex = 0;
+  late PageController _pageController;
   int _currentNavIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(viewportFraction: 0.85);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,73 +52,75 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
                 const SizedBox(height: 10),
 
-                // 2. Main Content (Carousel)
+                // 2. Main Content (Premium Garage Carousel)
                 Expanded(
                   child: vehiclesAsync.when(
                     data: (vehicles) {
                       if (vehicles.isEmpty) {
                         return Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Text("No vehicles in garage", style: TextStyle(color: Colors.white54)),
-                              TextButton(
-                                onPressed: () => context.push('/add-vehicle'),
-                                child: const Text("Add Vehicle"),
-                              )
-                            ],
+                          child: EmptyGarageCard(
+                            onTap: () => context.push('/add-vehicle'),
                           ),
                         );
                       }
+                      
+                      // Ensure logic provider is listening
+                      ref.watch(vehicleSelectionLogicProvider);
+                      
                       return Column(
                         children: [
                           Expanded(
-                            child: Center(
-                              child: CarouselSlider.builder(
-                                itemCount: vehicles.length,
-                                itemBuilder: (context, index, realIndex) {
-                                  return VehicleCard(
-                                    vehicle: vehicles[index],
+                            child: PageView.builder(
+                              controller: _pageController,
+                              itemCount: vehicles.length,
+                              onPageChanged: (index) {
+                                ref.read(selectedVehicleIndexProvider.notifier).state = index;
+                              },
+                              itemBuilder: (context, index) {
+                                final vehicle = vehicles[index];
+                                // We check if this specific card index matches the currently selected one in State
+                                // Note: This might cause rebuild of all cards on swipe. Optimized approach handles this locally.
+                                final isSelected = ref.watch(selectedVehicleIndexProvider) == index;
+                                final latestDiagnostic = ref.watch(latestDiagnosticProvider);
+                                
+                                return AnimatedScale(
+                                  duration: const Duration(milliseconds: 300),
+                                  scale: isSelected ? 1.0 : 0.9,
+                                  child: VehicleCard(
+                                    vehicle: vehicle,
+                                    // Only show health score on the active card if we have it
+                                    // In a real app we'd map diagnostic by vehicle ID.
+                                    // Here we assume global latestDiagnostic belongs to selected vehicle.
+                                    healthScore: (isSelected && latestDiagnostic != null) ? latestDiagnostic.healthScore : null,
                                     onTap: () {
-                                       // Navigate or expand details
+                                       // Navigate
                                     },
-                                  );
-                                },
-                                options: CarouselOptions(
-                                  height: MediaQuery.of(context).size.height * 0.55,
-                                  enlargeCenterPage: true,
-                                  viewportFraction: 0.8,
-                                  enableInfiniteScroll: false,
-                                  onPageChanged: (index, reason) {
-                                    setState(() => _currentVehicleIndex = index);
-                                  },
-                                ),
-                              ),
+                                  ),
+                                );
+                              },
                             ),
                           ),
-                          // Dots Indicator
-                           Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: vehicles.asMap().entries.map((entry) {
-                              return Container(
-                                width: 8.0,
-                                height: 8.0,
-                                margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: (Theme.of(context).brightness == Brightness.dark
-                                          ? Colors.white
-                                          : Colors.black)
-                                      .withOpacity(_currentVehicleIndex == entry.key ? 0.9 : 0.4),
-                                ),
-                              );
-                            }).toList(),
-                          ),
+                          
+                          const SizedBox(height: 20),
+                          
+                          // Dots Indicator linked to Controller
+                          SmoothPageIndicator(
+                              controller: _pageController,
+                              count: vehicles.length,
+                              effect: const ExpandingDotsEffect(
+                                activeDotColor: Color(0xFF00E5FF),
+                                dotColor: Colors.grey,
+                                dotHeight: 8,
+                                dotWidth: 8,
+                                expansionFactor: 4,
+                                spacing: 8,
+                              ),
+                           ),
                         ],
                       );
                     },
-                    loading: () => const Center(child: CircularProgressIndicator(color: Colors.redAccent)),
-                    error: (_, __) => const Center(child: Text("Error loading vehicles", style: TextStyle(color: Colors.red))),
+                    loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF00E5FF))),
+                    error: (_, __) => const Center(child: Text("Error loading garage", style: TextStyle(color: Colors.red))),
                   ),
                 ),
                 
@@ -124,7 +142,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           Positioned(
             bottom: 60, // Adjust to float above nav bar
             right: 30, // Positioned to the right as per suggestion or center if desired
-            child: _buildPanicButton(),
+            child: const PanicButton(),
           ),
         ],
       ),
@@ -189,47 +207,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Widget _buildPanicButton() {
-    return Container(
-      width: 80,
-      height: 80,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: const RadialGradient(
-          colors: [Color(0xFFFF5252), Color(0xFFD50000)],
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.redAccent.withOpacity(0.5),
-            blurRadius: 15,
-            spreadRadius: 4,
-            offset: const Offset(0, 4),
-          ),
-        ],
-        border: Border.all(color: Colors.white.withOpacity(0.2), width: 2),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(40),
-          onTap: () {
-            // Panic Action
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Panic Button Pressed!")));
-          },
-          child: const Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.warning_amber_rounded, color: Colors.white, size: 30),
-               Text(
-                "PANIC",
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 10),
-              )
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+  // Placeholder removed, replaced by dedicated widget import
+  // Ensure 'package:autolink_mobile/features/diagnostics/presentation/panic_button.dart' is imported at the top
 
   Widget _buildBottomNavBar() {
     return Container(

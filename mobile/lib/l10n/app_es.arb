@@ -1,0 +1,8 @@
+{
+  "criticalVehicleState": "ESTADO CRÍTICO DEL VEHÍCULO",
+  "criticalVehicleStateMsg": "Atención inmediata requerida.",
+  "callRoadside": "LLAMAR ASISTENCIA EN RUTA",
+  "sendGps": "ENVIAR GPS AL MECÁNICO",
+  "panicButton": "PÁNICO",
+  "critical": "CRÍTICO"
+}

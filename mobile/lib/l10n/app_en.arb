@@ -1,0 +1,8 @@
+{
+  "criticalVehicleState": "CRITICAL VEHICLE STATE",
+  "criticalVehicleStateMsg": "Immediate attention required.",
+  "callRoadside": "CALL ROADSIDE ASSISTANCE",
+  "sendGps": "SEND GPS TO MECHANIC",
+  "panicButton": "PANIC",
+  "critical": "CRITICAL"
+}

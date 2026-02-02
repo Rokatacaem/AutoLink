@@ -1,5 +1,6 @@
 import 'package:autolink_mobile/features/diagnostics/data/diagnostic_repository.dart';
 import 'package:autolink_mobile/features/diagnostics/presentation/health_report_widget.dart';
+import 'package:autolink_mobile/features/diagnostics/data/diagnostic_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -18,13 +19,28 @@ class DiagnosticsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // We watch the FutureProvider. 
+    // Watch the FutureProvider. 
     // This triggers the API call immediately when the screen is built.
     final diagnosticAsync = ref.watch(diagnosticReportProvider(
       description: description,
       vehicleId: vehicleId,
       locale: locale,
     ));
+
+    // Update global state on successful load so Panic Button can react
+    ref.listen(diagnosticReportProvider(
+      description: description,
+      vehicleId: vehicleId,
+      locale: locale,
+    ), (previous, next) {
+      if (next.hasValue && next.value != null) {
+         // Using future microtask to avoid build conflicts
+         Future.microtask(() => 
+            ref.read(latestDiagnosticProvider.notifier).updateDiagnostic(next.value!)
+         );
+      }
+    });
+
 
     return Scaffold(
       backgroundColor: Colors.black,
