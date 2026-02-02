@@ -9,6 +9,7 @@ class VehicleBase(BaseModel):
     model: Optional[str] = None
     year: Optional[int] = None
     nickname: Optional[str] = None
+    health_score: Optional[int] = 100
 
     @field_validator('year')
     @classmethod

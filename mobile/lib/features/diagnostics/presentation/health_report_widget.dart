@@ -5,8 +5,9 @@ import 'package:google_fonts/google_fonts.dart';
 
 class HealthReportWidget extends StatelessWidget {
   final DiagnosticModel data;
+  final Function(Fault) onResolve;
 
-  const HealthReportWidget({super.key, required this.data});
+  const HealthReportWidget({super.key, required this.data, required this.onResolve});
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +28,7 @@ class HealthReportWidget extends StatelessWidget {
             if (data.faults.isEmpty)
               const _EmptyState(message: "No faults detected. Vehicle is in good health.")
             else
-              ...data.faults.map((fault) => _FaultCard(fault: fault)),
+              ...data.faults.map((fault) => _FaultCard(fault: fault, onResolve: () => onResolve(fault))),
             
             const SizedBox(height: 30),
             if (data.recommendedActions.isNotEmpty) ...[
@@ -225,8 +226,9 @@ class _UrgencyBadge extends StatelessWidget {
 
 class _FaultCard extends StatelessWidget {
   final Fault fault;
+  final VoidCallback onResolve;
 
-  const _FaultCard({required this.fault});
+  const _FaultCard({required this.fault, required this.onResolve});
 
   @override
   Widget build(BuildContext context) {
@@ -290,13 +292,31 @@ class _FaultCard extends StatelessWidget {
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-              child: Text(
-                fault.description ?? "No details available.",
-                style: GoogleFonts.outfit(
-                  color: Colors.grey[400],
-                  fontSize: 14,
-                  height: 1.5,
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    fault.description ?? "No details available.",
+                    style: GoogleFonts.outfit(
+                      color: Colors.grey[400],
+                      fontSize: 14,
+                      height: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 15),
+                  ElevatedButton.icon(
+                    onPressed: onResolve,
+                    icon: const Icon(Icons.check_circle, size: 16, color: Colors.white),
+                    label: Text("MARK AS RESOLVED", style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF00C853).withOpacity(0.2), // Success Green with glass
+                      foregroundColor: const Color(0xFF00C853),
+                      side: const BorderSide(color: Color(0xFF00C853)),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                  )
+                ],
               ),
             ),
           ],

@@ -22,6 +22,8 @@ dependencies:
   flutter_animate: ^4.5.0
   vibration: ^1.8.4
   smooth_page_indicator: ^1.1.0
+  fl_chart: ^0.66.0
+  confetti: ^0.7.0
 
   # Navigation
   go_router: ^12.1.0

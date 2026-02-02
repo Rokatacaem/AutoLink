@@ -9,6 +9,8 @@ class Vehicle(Base):
     model = Column(String, index=True)
     year = Column(Integer)
     nickname = Column(String, nullable=True)
+    health_score = Column(Integer, default=100)
     
     owner_id = Column(Integer, ForeignKey("user.id"))
     owner = relationship("User", back_populates="vehicles")
+    maintenance_logs = relationship("MaintenanceLog", back_populates="vehicle", cascade="all, delete-orphan")
