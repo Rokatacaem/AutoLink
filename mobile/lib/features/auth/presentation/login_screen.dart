@@ -104,7 +104,27 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ? const CircularProgressIndicator(color: Colors.white)
                     : const Text("LOGIN"),
               ),
-              const SizedBox(height: 16),
+                const SizedBox(height: 24),
+                const Row(children: [Expanded(child: Divider()), Padding(padding: EdgeInsets.symmetric(horizontal: 16), child: Text("OR")), Expanded(child: Divider())]),
+                const SizedBox(height: 24),
+
+                OutlinedButton.icon(
+                  onPressed: authState.isLoading
+                      ? null
+                      : () {
+                          ref.read(loginControllerProvider.notifier).signInWithGoogle();
+                        },
+                  icon: Image.network(
+                    'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/768px-Google_%22G%22_logo.svg.png',
+                    height: 24,
+                    errorBuilder: (context, error, stackTrace) => const Icon(Icons.login), 
+                  ),
+                  label: const Text("Sign in with Google"),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+                const SizedBox(height: 16),
               
               TextButton(
                 onPressed: () => context.push('/register'),

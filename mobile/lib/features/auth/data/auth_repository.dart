@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import '../../../core/api_client.dart';
 
 final authRepositoryProvider = Provider((ref) {
@@ -79,5 +80,46 @@ class AuthRepository {
 
   Future<String?> getToken() async {
     return await _storage.read(key: 'auth_token');
+  }
+
+  // Social Auth
+  final _googleSignIn = GoogleSignIn(scopes: ['email', 'profile']);
+
+  Future<String> signInWithGoogle() async {
+    try {
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) {
+        throw 'Google Sign In Canceled';
+      }
+
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final idToken = googleAuth.idToken;
+
+      if (idToken == null) {
+        throw 'Failed to get ID Token from Google';
+      }
+
+      // Send to Backend
+      final response = await _dio.post(
+        '/auth/social-login',
+        data: {
+          'provider': 'google',
+          'id_token': idToken,
+        },
+      );
+
+      final token = response.data['access_token'];
+      await _storage.write(key: 'auth_token', value: token);
+      return token;
+    } catch (e) {
+      if (e is DioException) {
+         final data = e.response?.data;
+         if (data is Map && data['detail'] != null) {
+            throw data['detail'];
+         }
+         throw 'Social Login Failed: ${e.message}';
+      }
+      rethrow;
+    }
   }
 }

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "533369369704",
+    "project_id": "autolink-e5f11",
+    "storage_bucket": "autolink-e5f11.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:533369369704:android:1cf75a26a37103249437dd",
+        "android_client_info": {
+          "package_name": "com.autolink.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAJ4qJxK_77k0d3QzLGpU8n5kL_ZoNZ_JQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -16,6 +16,13 @@ class LoginController extends _$LoginController {
       await ref.read(authRepositoryProvider).login(email, password);
     });
   }
+
+  Future<void> signInWithGoogle() async {
+     state = const AsyncValue.loading();
+     state = await AsyncValue.guard(() async {
+       await ref.read(authRepositoryProvider).signInWithGoogle();
+     });
+  }
 }
 
 @riverpod
