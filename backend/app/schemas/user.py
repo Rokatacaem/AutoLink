@@ -17,7 +17,7 @@ class UserBase(BaseModel):
 # Properties to receive via API on creation
 class UserCreate(UserBase):
     email: EmailStr
-    password: str
+    password: Optional[str] = None
 
 # Properties to receive via API on update
 class UserUpdate(UserBase):
@@ -44,3 +44,7 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     email: Optional[str] = None
+
+class SocialLoginRequest(BaseModel):
+    provider: str # "google" or "apple"
+    id_token: str

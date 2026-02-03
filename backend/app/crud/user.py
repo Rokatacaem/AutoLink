@@ -12,7 +12,7 @@ def create_user(db: Session, user_in: UserCreate) -> User:
     """Create new user."""
     db_user = User(
         email=user_in.email,
-        hashed_password=get_password_hash(user_in.password),
+        hashed_password=get_password_hash(user_in.password) if user_in.password else None,
         full_name=user_in.full_name,
         role=user_in.role,
         preferred_locale=user_in.preferred_locale,

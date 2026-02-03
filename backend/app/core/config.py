@@ -21,6 +21,9 @@ class Settings(BaseSettings):
             return self.DATABASE_URL.replace("postgres://", "postgresql://", 1)
         return self.DATABASE_URL
     
+    # Social Auth
+    GOOGLE_CLIENT_ID: str = "20422848106-c29ms..." 
+
     class Config:
         case_sensitive = True
         env_file = ".env"

@@ -20,5 +20,20 @@ final myVehiclesProvider = AutoDisposeFutureProvider<List<dynamic>>.internal(
 );
 
 typedef MyVehiclesRef = AutoDisposeFutureProviderRef<List<dynamic>>;
+String _$mechanicsListHash() => r'af2631c69b8c81859465df6c02b9cf8e126bbe96';
+
+/// See also [mechanicsList].
+@ProviderFor(mechanicsList)
+final mechanicsListProvider = AutoDisposeFutureProvider<List<dynamic>>.internal(
+  mechanicsList,
+  name: r'mechanicsListProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$mechanicsListHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef MechanicsListRef = AutoDisposeFutureProviderRef<List<dynamic>>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member

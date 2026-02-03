@@ -66,3 +66,60 @@ def login(
         subject=user.email, expires_delta=access_token_expires
     )
     return {"access_token": access_token, "token_type": "bearer"}
+
+from google.oauth2 import id_token
+from google.auth.transport import requests
+from app.schemas.user import SocialLoginRequest
+
+@router.post("/social-login", response_model=Token)
+def social_login(
+    payload: SocialLoginRequest,
+    db: Session = Depends(get_db)
+) -> Any:
+    """
+    Social Login (Google/Apple).
+    Verifies ID Token and returns JWT Access Token.
+    """
+    email = None
+    name = None
+    
+    if payload.provider == "google":
+        try:
+            # Verify the token
+            idinfo = id_token.verify_oauth2_token(
+                payload.id_token, 
+                requests.Request(), 
+                settings.GOOGLE_CLIENT_ID
+            )
+            email = idinfo['email']
+            name = idinfo.get('name')
+        except ValueError as e:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail=f"Invalid Google Token: {str(e)}",
+            )
+    else:
+        raise HTTPException(status_code=400, detail="Provider not supported yet")
+
+    if not email:
+        raise HTTPException(status_code=400, detail="Email not found in token")
+
+    # JIT Provisioning
+    user = crud_user.get_user_by_email(db, email=email)
+    if not user:
+        # Create new user
+        user_in = UserCreate(
+            email=email,
+            full_name=name or email.split("@")[0],
+            password=None # Social user has no password
+        )
+        user = crud_user.create_user(db, user_in=user_in)
+    
+    if not user.is_active:
+        raise HTTPException(status_code=400, detail="Inactive user")
+
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        subject=user.email, expires_delta=access_token_expires
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
