@@ -24,11 +24,8 @@ log_file_path = os.path.join(BASE_DIR, "backend_server.log")
 
 handlers = [logging.StreamHandler(sys.stdout)]
 
-try:
-    file_handler = RotatingFileHandler(log_file_path, maxBytes=10*1024*1024, backupCount=5, encoding='utf-8')
-    handlers.append(file_handler)
-except Exception as e:
-    print(f"WARNING: Could not set up file logging: {e}")
+# File logging removed for Vercel compatibility (Read-only filesystem)
+# handlers = [logging.StreamHandler(sys.stdout)] is sufficient for Vercel logs
 
 logging.basicConfig(
     level=logging.INFO,
