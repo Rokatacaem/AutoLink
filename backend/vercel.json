@@ -1,14 +1,21 @@
 {
-    "builds": [
-        {
-            "src": "app/main.py",
-            "use": "@vercel/python"
+    "functions": {
+        "api/*.py": {
+            "memory": 1024,
+            "maxDuration": 10
+        },
+        "app/main.py": {
+            "maxDuration": 10
         }
-    ],
-    "routes": [
+    },
+    "rewrites": [
         {
-            "src": "/(.*)",
-            "dest": "app/main.py"
+            "source": "/health",
+            "destination": "/api/health.py"
+        },
+        {
+            "source": "/(.*)",
+            "destination": "/app/main.py"
         }
     ]
 }
