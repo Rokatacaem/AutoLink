@@ -4,8 +4,8 @@ from app.api.v1.api import api_router
 from app.db.session import engine
 from app.db.base import Base
 
-# HOTFIX: Create tables on startup if they don't exist
-Base.metadata.create_all(bind=engine)
+# HOTFIX: Create tables on startup is removed. Use Alembic for migrations.
+# Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
