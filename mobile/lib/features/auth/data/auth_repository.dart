@@ -83,10 +83,15 @@ class AuthRepository {
   }
 
   // Social Auth
-  final _googleSignIn = GoogleSignIn(scopes: ['email', 'profile']);
+  final _googleSignIn = GoogleSignIn(
+    scopes: ['email', 'profile'],
+  );
 
   Future<String> signInWithGoogle() async {
     try {
+      // Force clean session to avoid cached invalid states
+      await _googleSignIn.signOut();
+      
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) {
         throw 'Google Sign In Canceled';
@@ -94,17 +99,19 @@ class AuthRepository {
 
       final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
       final idToken = googleAuth.idToken;
+      final accessToken = googleAuth.accessToken;
 
-      if (idToken == null) {
-        throw 'Failed to get ID Token from Google';
+      if (idToken == null && accessToken == null) {
+        throw 'Failed to get Authenticated Tokens from Google';
       }
 
-      // Send to Backend
+      // Send to Backend (Prefer ID Token, fallback to Access Token)
       final response = await _dio.post(
         '/auth/social-login',
         data: {
           'provider': 'google',
           'id_token': idToken,
+          'access_token': accessToken,
         },
       );
 

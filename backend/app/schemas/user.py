@@ -47,4 +47,5 @@ class TokenData(BaseModel):
 
 class SocialLoginRequest(BaseModel):
     provider: str # "google" or "apple"
-    id_token: str
+    id_token: Optional[str] = None
+    access_token: Optional[str] = None

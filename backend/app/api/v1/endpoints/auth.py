@@ -85,14 +85,38 @@ def social_login(
     
     if payload.provider == "google":
         try:
-            # Verify the token
-            idinfo = id_token.verify_oauth2_token(
-                payload.id_token, 
-                requests.Request(), 
-                settings.GOOGLE_CLIENT_ID
-            )
-            email = idinfo['email']
-            name = idinfo.get('name')
+            if payload.id_token:
+                # Verify the ID token
+                idinfo = id_token.verify_oauth2_token(
+                    payload.id_token, 
+                    requests.Request(), 
+                    settings.GOOGLE_CLIENT_ID
+                )
+                email = idinfo['email']
+                name = idinfo.get('name')
+            elif payload.access_token:
+                # Verify Access Token via Google API
+                import requests as req
+                resp = req.get(f"https://www.googleapis.com/oauth2/v3/tokeninfo?access_token={payload.access_token}")
+                if resp.status_code != 200:
+                    raise ValueError("Invalid Access Token")
+                
+                token_info = resp.json()
+                email = token_info.get('email')
+                # If email is not in tokeninfo, we might need to fetch userinfo
+                if not email:
+                     user_resp = req.get(
+                         "https://www.googleapis.com/oauth2/v3/userinfo", 
+                         headers={"Authorization": f"Bearer {payload.access_token}"}
+                     )
+                     if user_resp.status_code == 200:
+                         user_info = user_resp.json()
+                         email = user_info.get('email')
+                         name = user_info.get('name')
+                
+            else:
+                raise ValueError("Either id_token or access_token must be provided")
+
         except ValueError as e:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
