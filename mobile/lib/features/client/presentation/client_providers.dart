@@ -1,10 +1,9 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import '../../auth/data/auth_repository.dart';
 import '../data/client_repository.dart';
 import '../domain/vehicle.dart';
 
 part 'client_providers.g.dart';
-
-import '../../auth/data/auth_repository.dart';
 
 @riverpod
 Future<List<dynamic>> myVehicles(MyVehiclesRef ref) async {
