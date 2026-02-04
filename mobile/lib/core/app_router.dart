@@ -10,7 +10,14 @@ import '../../features/client/presentation/ai_chat_screen.dart';
 import '../../features/mechanic/presentation/mechanic_home_screen.dart';
 
 final appRouter = GoRouter(
-  initialLocation: '/login',
+  initialLocation: '/home',
+  // FIXME: TEMPORARY FORCE REDIRECT FOR TESTING - REMOVE LATER
+  redirect: (context, state) {
+     // Always go to home, ignore everything else
+     // But prevent infinite loop if already at home
+     if (state.uri.path == '/home') return null;
+     return '/home';
+  },
   routes: [
     GoRoute(
       path: '/login',
