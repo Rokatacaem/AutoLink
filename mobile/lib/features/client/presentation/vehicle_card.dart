@@ -143,10 +143,10 @@ class VehicleCard extends StatelessWidget {
   String _getMockImage(String model) {
     // Quick mock logic for demo purposes
     final m = model.toLowerCase();
-    if (m.contains('supra')) return "https://purepng.com/public/uploads/large/purepng.com-toyota-supra-carcarvehicletransporttoyota-961524670176gqccu.png";
-    if (m.contains('mustang')) return "https://purepng.com/public/uploads/large/purepng.com-ford-mustang-white-carcarvehicletransportford-961524663363v7ksx.png";
-    if (m.contains('gtr') || m.contains('skyline')) return "https://purepng.com/public/uploads/large/purepng.com-nissan-gtr-carcarvehicletransportnissan-961524660305s1qrd.png";
-    return "https://purepng.com/public/uploads/large/purepng.com-white-toyota-yaris-carcarvehicletroy-1701527429117b3q2g.png"; // Fallback
+    if (m.contains('supra')) return "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/2020_Toyota_GR_Supra_GT4_3.0_Front.jpg/640px-2020_Toyota_GR_Supra_GT4_3.0_Front.jpg";
+    if (m.contains('mustang')) return "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d1/2018_Ford_Mustang_GT_5.0_Front.jpg/640px-2018_Ford_Mustang_GT_5.0_Front.jpg";
+    if (m.contains('gtr') || m.contains('skyline')) return "https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Nissan_GT-R_R35_Martini_Racing.jpg/640px-Nissan_GT-R_R35_Martini_Racing.jpg";
+    return "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/2019_Toyota_Camry_L_Front.jpg/640px-2019_Toyota_Camry_L_Front.jpg"; // Fallback
   }
 }
 

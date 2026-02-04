@@ -141,7 +141,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           // 4. Floating Panic Button
           Positioned(
             bottom: 60, // Adjust to float above nav bar
-            right: 30, // Positioned to the right as per suggestion or center if desired
+            left: 30, // Moved to LEFT to avoid overlap with FAB
             child: const PanicButton(),
           ),
         ],
