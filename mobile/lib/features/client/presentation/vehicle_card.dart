@@ -108,9 +108,10 @@ class VehicleCard extends StatelessWidget {
                     // Vehicle Image (Centered/Bottom)
                     Center(
                       child: Image.network(
-                        "https://purepng.com/public/uploads/large/purepng.com-white-toyota-yaris-carcarvehicletroy-1701527429117b3q2g.png", // TODO: Use vehicle.imageUrl
+                        _getMockImage(vehicle.model),
                         height: 120,
                         fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) => const Icon(Icons.directions_car, size: 80, color: Colors.white24),
                       ),
                     ),
                     
@@ -134,9 +135,17 @@ class VehicleCard extends StatelessWidget {
               ),
             ],
           ),
-        ),
       ),
     );
+  }
+
+  String _getMockImage(String model) {
+    // Quick mock logic for demo purposes
+    final m = model.toLowerCase();
+    if (m.contains('supra')) return "https://purepng.com/public/uploads/large/purepng.com-toyota-supra-carcarvehicletransporttoyota-961524670176gqccu.png";
+    if (m.contains('mustang')) return "https://purepng.com/public/uploads/large/purepng.com-ford-mustang-white-carcarvehicletransportford-961524663363v7ksx.png";
+    if (m.contains('gtr') || m.contains('skyline')) return "https://purepng.com/public/uploads/large/purepng.com-nissan-gtr-carcarvehicletransportnissan-961524660305s1qrd.png";
+    return "https://purepng.com/public/uploads/large/purepng.com-white-toyota-yaris-carcarvehicletroy-1701527429117b3q2g.png"; // Fallback
   }
 }
 

@@ -145,6 +145,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             child: const PanicButton(),
           ),
         ],
+        ],
+      ),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 80.0), // Above Navigation Bar
+        child: FloatingActionButton(
+          onPressed: () => context.push('/add-vehicle'),
+          backgroundColor: const Color(0xFFFF6B00), // Brand Orange
+          child: const Icon(Icons.add, color: Colors.white),
+        ),
       ),
     );
   }

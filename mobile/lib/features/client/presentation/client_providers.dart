@@ -18,7 +18,8 @@ Future<List<dynamic>> myVehicles(MyVehiclesRef ref) async {
       "model": "Supra MK4",
       "year": 1998,
       "vin": "JT2JA82J100001",
-      "health_score": 85
+      "health_score": 85,
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/61/Toyota_Supra_MK4_-_Flickr_-_Alexandre_Pr%C3%A9vot_%282%29_%28cropped%29.jpg/1200px-Toyota_Supra_MK4_-_Flickr_-_Alexandre_Pr%C3%A9vot_%282%29_%28cropped%29.jpg"
     },
     {
       "id": 2,
@@ -26,7 +27,8 @@ Future<List<dynamic>> myVehicles(MyVehiclesRef ref) async {
       "model": "Mustang",
       "year": 1969,
       "vin": "1F02R100001",
-      "health_score": 62
+      "health_score": 62,
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/4/4f/1969_Ford_Mustang_Boss_429_Fastback.jpg"
     },
     {
       "id": 3,
@@ -34,7 +36,8 @@ Future<List<dynamic>> myVehicles(MyVehiclesRef ref) async {
       "model": "GTR R34",
       "year": 2002,
       "vin": "BNR34-400123",
-      "health_score": 98
+      "health_score": 98,
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Nissan_Skyline_GT-R_B-NR34_V-Spec_II_Nur_-_01.jpg/1200px-Nissan_Skyline_GT-R_B-NR34_V-Spec_II_Nur_-_01.jpg"
     }
   ].map((json) => Vehicle.fromJson(json)).toList();
 
