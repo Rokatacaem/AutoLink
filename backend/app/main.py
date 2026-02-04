@@ -54,3 +54,34 @@ app.add_middleware(
 @app.get("/")
 def root():
     return {"message": "Welcome to AutoLink API"}
+
+from alembic.config import Config
+from alembic import command
+import os
+
+@app.on_event("startup")
+async def startup_event():
+    logger.info("Detailed Startup: Checking Database Migrations...")
+    try:
+        # Determine paths
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        alembic_ini_path = os.path.join(base_dir, "alembic.ini")
+        
+        logger.info(f"Looking for alembic.ini at: {alembic_ini_path}")
+        
+        if os.path.exists(alembic_ini_path):
+            alembic_cfg = Config(alembic_ini_path)
+            # Ensure script location is absolute
+            alembic_cfg.set_main_option("script_location", os.path.join(base_dir, "alembic"))
+            
+            # Run upgrade
+            logger.info("Running alembic upgrade head...")
+            command.upgrade(alembic_cfg, "head")
+            logger.info("Migrations completed successfully!")
+        else:
+            logger.warning("alembic.ini not found. Skipping migrations.")
+            
+    except Exception as e:
+        logger.error(f"Startup Migration Failed: {e}")
+        # We catch validation errors, but we don't block startup
+        pass
