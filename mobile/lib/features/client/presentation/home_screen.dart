@@ -145,7 +145,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             child: const PanicButton(),
           ),
         ],
-        ],
       ),
       floatingActionButton: Padding(
         padding: const EdgeInsets.only(bottom: 80.0), // Above Navigation Bar
