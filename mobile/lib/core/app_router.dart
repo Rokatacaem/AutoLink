@@ -11,11 +11,20 @@ import '../../features/mechanic/presentation/mechanic_home_screen.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/home',
-  // FIXME: TEMPORARY FORCE REDIRECT FOR TESTING - REMOVE LATER
+  // FIXME: TEMPORARY FORCE REDIRECT FOR TESTING - ALLOW NAVIGATION
   redirect: (context, state) {
-     // Always go to home, ignore everything else
-     // But prevent infinite loop if already at home
-     if (state.uri.path == '/home') return null;
+     final path = state.uri.path;
+     
+     // Allow specific routes for testing
+     if (path == '/home' || 
+         path == '/add-vehicle' || 
+         path == '/mechanic-list' || 
+         path == '/book-appointment' || // Assuming this is the path
+         path.startsWith('/diagnosis')) {
+       return null; 
+     }
+
+     // Redirect everything else to home (especially login/register/slash)
      return '/home';
   },
   routes: [
