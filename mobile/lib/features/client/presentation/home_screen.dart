@@ -252,7 +252,28 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget _buildNavItem(IconData icon, int index) {
     final bool isSelected = _currentNavIndex == index;
     return GestureDetector(
-      onTap: () => setState(() => _currentNavIndex = index),
+      onTap: () {
+        setState(() => _currentNavIndex = index);
+        switch (index) {
+          case 0:
+            context.go('/home');
+            break;
+          case 1:
+            // Calendar -> Mechanic List/Appointments
+            context.push('/mechanic-list');
+            break;
+          case 2:
+            // Camera -> AI Diagnosis
+            context.push('/diagnosis');
+            break;
+          case 3:
+            // Profile -> Placeholder
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("Profile Feature Coming Soon!")),
+            );
+            break;
+        }
+      },
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: isSelected ? BoxDecoration(
