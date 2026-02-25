@@ -192,29 +192,40 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
                      ],
                    ),
                    const SizedBox(height: 20),
-                   SizedBox(
-                     width: double.infinity,
-                     child: ElevatedButton.icon(
-                        onPressed: () {
-                           // Action to contact mechanic
-                        },
-                        icon: const Icon(Icons.phone, color: Colors.black),
-                        label: Text("CONTACTAR TALLERISTA", style: GoogleFonts.outfit(fontWeight: FontWeight.bold, letterSpacing: 1.0, color: Colors.black)),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF00E5FF),
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))
-                        ),
-                     ),
-                   )
-                ],
+                     SizedBox(
+                       width: double.infinity,
+                       child: ElevatedButton.icon(
+                          onPressed: () {
+                             _launchCaller();
+                          },
+                          icon: const Icon(Icons.phone, color: Colors.black),
+                          label: Text("CONTACTAR TALLERISTA", style: GoogleFonts.outfit(fontWeight: FontWeight.bold, letterSpacing: 1.0, color: Colors.black)),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF00E5FF),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))
+                          ),
+                       ),
+                     )
+                  ],
+                ),
               ),
-            ),
-          )
-        ],
-      ),
-    );
-  }
+            )
+          ],
+        ),
+      );
+    }
+
+    void _launchCaller() {
+      // In a real app, use url_launcher: launchUrl(Uri.parse("tel:+56912345678"));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Llamando al mecánico: +56 9 1234 5678...", style: GoogleFonts.outfit()),
+          backgroundColor: Colors.blueGrey,
+          duration: const Duration(seconds: 3),
+        )
+      );
+    }
 
   Widget _buildMetric(String label, String value, IconData icon) {
     return Column(

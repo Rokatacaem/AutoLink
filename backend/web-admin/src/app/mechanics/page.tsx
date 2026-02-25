@@ -21,6 +21,7 @@ export default function MechanicsPage() {
                                 <th>Propietario</th>
                                 <th>Taller</th>
                                 <th>Especialidades</th>
+                                <th>Calificación</th>
                                 <th>Estado</th>
                                 <th>Plan de Suscripción</th>
                                 <th>Acciones</th>
@@ -31,6 +32,7 @@ export default function MechanicsPage() {
                                 <td>Carlos Díaz</td>
                                 <td>Mecánica Carlos V</td>
                                 <td>Mecánica General, Frenos</td>
+                                <td><span style={{ color: '#FFD700' }}>★ 4.8</span> (12)</td>
                                 <td><span className="badge success">ONLINE</span></td>
                                 <td>BASIC ($10/mo)</td>
                                 <td><button className="btn-text">Gestionar</button></td>
@@ -39,6 +41,7 @@ export default function MechanicsPage() {
                                 <td>Autorepair SPA</td>
                                 <td>ElectroAuto Centro</td>
                                 <td>Eléctrico</td>
+                                <td><span style={{ color: '#FFD700' }}>★ 5.0</span> (3)</td>
                                 <td><span className="badge warning">OFFLINE</span></td>
                                 <td>PRO ($25/mo)</td>
                                 <td><button className="btn-text">Gestionar</button></td>
