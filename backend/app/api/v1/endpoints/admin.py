@@ -87,13 +87,18 @@ def get_map_data(
 
     requests_out = []
     for sr in active_requests_db:
+        # Prevent Pydantic validation error if full_name is None
+        c_name = f"Cliente #{sr.customer_id}"
+        if sr.customer and sr.customer.full_name:
+            c_name = sr.customer.full_name
+
         requests_out.append(ServiceRequestMapFeature(
             id=sr.id,
-            customer_name=sr.customer.full_name if sr.customer else f"Cliente #{sr.customer_id}",
+            customer_name=c_name,
             lat=sr.customer.latitude if sr.customer else None,
             lng=sr.customer.longitude if sr.customer else None,
             diagnosis=sr.description[:80] + "..." if len(sr.description) > 80 else sr.description,
-            service_status=sr.status.value,
+            service_status=sr.status.value if hasattr(sr.status, "value") else str(sr.status),
         ))
 
     return MapDataResponse(mechanics=mechanics_out, active_requests=requests_out)
