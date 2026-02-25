@@ -165,18 +165,82 @@ def accept_service_request(
 
     return service_request
 
-async def _process_feedback_analysis(db: Session, feedback_id: int, comment: str, is_accurate: bool):
+async def _process_feedback_analysis(db: Session, feedback_id: int, service_request_id: int):
+    """
+    Background task: runs triangular AI audit on the completed service.
+    Compares AI diagnosis vs mechanic report vs user comment.
+    Updates feedback scores and mechanic reputation_score.
+    """
     from app.services.ai_service import ai_service
-    # Run AI Analysis
-    ai_result = await ai_service.analyze_feedback(comment, is_accurate)
-    
-    # Update DB
-    feedback = db.query(models.ServiceFeedback).filter(models.ServiceFeedback.id == feedback_id).first()
-    if feedback:
-        feedback.sentiment_score = ai_result.get("sentiment_score", 0.0)
-        feedback.technical_match_score = ai_result.get("technical_match_score", 1.0)
+    import logging
+    logger = logging.getLogger(__name__)
+
+    try:
+        feedback = db.query(models.ServiceFeedback).filter(
+            models.ServiceFeedback.id == feedback_id
+        ).first()
+        service_request = crud.service.get(db=db, id=service_request_id)
+
+        if not feedback or not service_request:
+            logger.error(f"Audit failed: feedback {feedback_id} or service {service_request_id} not found.")
+            return
+
+        # Extract the AI diagnosis summary from the service description
+        # (The description contains the AI report injected at creation time)
+        ai_diagnosis_summary = service_request.description or "Sin diagnóstico registrado."
+        mechanic_report = service_request.description or "Sin reporte del mecánico."
+        user_comment = feedback.comment or ""
+
+        # Run triangular AI audit
+        audit_result = await ai_service.audit_service_quality(
+            ai_diagnosis_summary=ai_diagnosis_summary,
+            mechanic_report=mechanic_report,
+            user_comment=user_comment,
+            user_rating=feedback.rating,
+            is_ai_accurate=feedback.is_ai_accurate
+        )
+
+        # Normalize technical_score (1-10) to technical_match_score (0.0-1.0)
+        technical_score = audit_result.get("technical_score", 5.0)
+        normalized_score = (technical_score - 1.0) / 9.0  # maps 1→0.0, 10→1.0
+
+        # Update feedback record
+        feedback.sentiment_score = audit_result.get("sentiment_score", 0.0)
+        feedback.technical_match_score = normalized_score
+        feedback.audit_summary = audit_result.get("audit_summary", "")
         db.add(feedback)
+
+        # Update mechanic reputation_score (weighted moving average)
+        if service_request.mechanic_id:
+            mechanic = db.query(models.Mechanic).filter(
+                models.Mechanic.id == service_request.mechanic_id
+            ).first()
+            if mechanic:
+                n = mechanic.total_jobs_completed
+                current_score = mechanic.reputation_score
+                # Weighted average: new_score = (old_score * n + technical_score) / (n + 1)
+                mechanic.reputation_score = round(
+                    (current_score * n + technical_score) / (n + 1), 2
+                )
+                mechanic.total_jobs_completed = n + 1
+                db.add(mechanic)
+
+                if audit_result.get("flag_suspicious"):
+                    logger.warning(
+                        f"SUSPICIOUS FLAG: Mechanic {mechanic.id} ({mechanic.shop_name}) "
+                        f"scored {technical_score}/10. Audit: {audit_result.get('audit_summary')}"
+                    )
+
         db.commit()
+        logger.info(
+            f"Audit complete — feedback {feedback_id}: score={technical_score}/10, "
+            f"reputation updated for mechanic {service_request.mechanic_id}"
+        )
+
+    except Exception as e:
+        logger.error(f"Background audit failed for feedback {feedback_id}: {e}")
+        db.rollback()
+
 
 @router.post("/{id}/feedback", response_model=schemas.ServiceFeedbackResponse)
 def submit_service_feedback(
@@ -215,13 +279,12 @@ def submit_service_feedback(
     db.commit()
     db.refresh(new_feedback)
     
-    # Trigger generative AI analysis in the background
+    # Trigger triangular AI audit in the background
     background_tasks.add_task(
-        _process_feedback_analysis, 
-        db=db, 
-        feedback_id=new_feedback.id, 
-        comment=feedback_in.comment or "", 
-        is_accurate=feedback_in.is_ai_accurate
+        _process_feedback_analysis,
+        db=db,
+        feedback_id=new_feedback.id,
+        service_request_id=service_request.id,
     )
 
     return new_feedback

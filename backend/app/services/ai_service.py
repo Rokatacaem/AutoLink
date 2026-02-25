@@ -2,10 +2,11 @@ import os
 import json
 import logging
 import google.generativeai as genai
-from typing import Optional, Dict, Any, List
-from app.schemas.ai import AIDiagnosticResponse, UrgencyLevel, Fault
+from typing import Optional, Dict, Any
+from app.schemas.ai import AIDiagnosticResponse, UrgencyLevel
 
 logger = logging.getLogger(__name__)
+
 
 class AIService:
     def __init__(self):
@@ -14,20 +15,25 @@ class AIService:
             logger.warning("GEMINI_API_KEY not found. AI features will be mocked or fail.")
         else:
             genai.configure(api_key=self.api_key)
-            # Use a model appropriate for structured data extraction
             self.model = genai.GenerativeModel('gemini-1.5-flash')
 
-    async def generate_diagnostic_report(self, description: str, locale: str, vehicle_context: Optional[Dict[str, Any]] = None) -> AIDiagnosticResponse:
-        """
-        Generates a structured diagnostic report using Gemini.
-        """
-        # Fallback to mock if no key
+    async def generate_diagnostic_report(
+        self,
+        description: str,
+        locale: str,
+        vehicle_context: Optional[Dict[str, Any]] = None
+    ) -> AIDiagnosticResponse:
+        """Generates a structured diagnostic report using Gemini."""
         if not self.api_key:
-             return self._mock_response()
+            return self._mock_response()
 
         vehicle_str = "Unknown Vehicle"
         if vehicle_context:
-            vehicle_str = f"{vehicle_context.get('brand', '')} {vehicle_context.get('model', '')} ({vehicle_context.get('year', '')})"
+            vehicle_str = (
+                f"{vehicle_context.get('brand', '')} "
+                f"{vehicle_context.get('model', '')} "
+                f"({vehicle_context.get('year', '')})"
+            )
 
         prompt = f"""
         Eres el "AutoLink Safety Advisor", un experto automotriz enfocado en la SEGURIDAD DEL CONDUCTOR.
@@ -60,15 +66,8 @@ class AIService:
         """
 
         try:
-            # We use async generation if available, or wrap synchronous call.
-            # verify verify genai async support or loop run_in_executor if needed.
-            # standard google-generativeai is synchronous but fast.
-            # For strict asyncio in FastAPI, we should run this in a threadpool if it blocks.
-            # However, for simplicity here we call it directly as it's often HTTP based.
             response = self.model.generate_content(prompt)
-            
             text = response.text.strip()
-            # Sanitize markdown if present (common thinking block or formatting)
             if text.startswith("```json"):
                 text = text[7:]
             elif text.startswith("```"):
@@ -76,10 +75,8 @@ class AIService:
             if text.endswith("```"):
                 text = text[:-3]
             text = text.strip()
-            
             data = json.loads(text)
             return AIDiagnosticResponse(**data)
-            
         except Exception as e:
             logger.error(f"AI Generation failed: {e}")
             return self._mock_response()
@@ -97,33 +94,79 @@ class AIService:
             required_specialty=MechanicSpecialty.MECHANICAL_ENGINE
         )
 
-    async def analyze_feedback(self, comment: str, is_accurate: bool) -> dict:
+    async def audit_service_quality(
+        self,
+        ai_diagnosis_summary: str,
+        mechanic_report: str,
+        user_comment: str,
+        user_rating: int,
+        is_ai_accurate: bool
+    ) -> dict:
         """
-        Takes user feedback and evaluates:
-        - sentiment_score (-1.0 to 1.0)
-        - technical_match_score (0.0 to 1.0)
-        """
-        if not comment:
-            return {"sentiment_score": 0.0, "technical_match_score": 1.0 if is_accurate else 0.0}
+        Triangular audit: compares AI diagnosis vs mechanic report vs user comment.
         
-        prompt = f"""
-        Act as a Quality Assurance AI. Analyze the following feedback from a driver about an AutoLink mechanic service and the previous AI diagnosis.
-        Was the AI diagnosis accurate according to the user? {is_accurate}
-        User Comment: "{comment}"
-
-        Output ONLY a valid JSON with:
-        {{
-            "sentiment_score": (float, from -1.0 for very angry/negative to 1.0 for very happy/positive),
-            "technical_match_score": (float, from 0.0 for completely wrong AI diagnosis to 1.0 for perfect match)
-        }}
+        Returns:
+            technical_score (float 1.0–10.0): quality of the mechanical resolution.
+            sentiment_score (float -1.0–1.0): sentiment from the user comment.
+            audit_summary (str): human-readable explanation for the reputation system.
+            flag_suspicious (bool): True if inconsistencies suggest unjustified charges.
         """
+        if not self.api_key:
+            score = min(10.0, max(1.0, float(user_rating) * 2.0))
+            return {
+                "technical_score": score,
+                "sentiment_score": (user_rating - 3) / 2.0,
+                "audit_summary": "Análisis mock — GEMINI_API_KEY no configurada.",
+                "flag_suspicious": False
+            }
+
+        prompt = f"""
+        Eres un Auditor de Calidad Técnica para la plataforma AutoLink de servicios mecánicos.
+        Tu tarea es evaluar si el mecánico resolvió lo que la IA diagnosticó inicialmente,
+        cruzando tres fuentes de información.
+
+        === DIAGNÓSTICO INICIAL (AutoLink AI) ===
+        {ai_diagnosis_summary}
+
+        === REPORTE DEL MECÁNICO (descripción del servicio completado) ===
+        {mechanic_report}
+
+        === FEEDBACK DEL CONDUCTOR ===
+        Comentario: "{user_comment}"
+        Rating del conductor: {user_rating}/5
+        ¿Confirmó que el diagnóstico IA fue preciso?: {is_ai_accurate}
+
+        === TU TAREA ===
+        Analiza la coherencia entre los tres textos y responde con un JSON válido:
+        {{
+            "technical_score": (float, de 1.0 a 10.0. 10 = mecánico resolvió exactamente lo diagnosticado. 1 = cobró sin resolver o posible fraude),
+            "sentiment_score": (float, de -1.0 a 1.0. Sentimiento general del conductor),
+            "audit_summary": (string, una oración explicando el score asignado),
+            "flag_suspicious": (boolean, true si detectas inconsistencias graves o señales de cobro injustificado)
+        }}
+
+        CRITICAL: Output ONLY the JSON. No markdown, no texto introductorio.
+        """
+
         try:
             response = await self.model.generate_content_async(prompt)
             text = response.text.replace("```json", "").replace("```", "").strip()
             data = json.loads(text)
+            # Clamp to valid ranges
+            data["technical_score"] = min(10.0, max(1.0, float(data.get("technical_score", 5.0))))
+            data["sentiment_score"] = min(1.0, max(-1.0, float(data.get("sentiment_score", 0.0))))
+            data["flag_suspicious"] = bool(data.get("flag_suspicious", False))
+            data["audit_summary"] = str(data.get("audit_summary", "Sin resumen disponible."))
             return data
         except Exception as e:
-            logger.error(f"Feedback AI Analysis failed: {e}")
-            return {"sentiment_score": 0.0, "technical_match_score": 1.0 if is_accurate else 0.0}
+            logger.error(f"Feedback Audit AI Analysis failed: {e}")
+            score = min(10.0, max(1.0, float(user_rating) * 2.0))
+            return {
+                "technical_score": score,
+                "sentiment_score": (user_rating - 3) / 2.0,
+                "audit_summary": f"Análisis de respaldo (error IA): rating {user_rating}/5.",
+                "flag_suspicious": False
+            }
+
 
 ai_service = AIService()

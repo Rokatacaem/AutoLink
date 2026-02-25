@@ -39,8 +39,9 @@ class ServiceFeedback(Base):
     is_ai_accurate = Column(Boolean, default=True)
     
     # AI Analysis fields
-    sentiment_score = Column(Float, nullable=True) # -1.0 to 1.0
-    technical_match_score = Column(Float, nullable=True) # 0.0 to 1.0
+    sentiment_score = Column(Float, nullable=True)         # -1.0 to 1.0
+    technical_match_score = Column(Float, nullable=True)   # 0.0 to 1.0
+    audit_summary = Column(Text, nullable=True)            # AI explanation of the score
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 

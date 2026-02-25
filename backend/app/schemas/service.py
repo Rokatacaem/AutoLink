@@ -45,7 +45,8 @@ class ServiceFeedbackResponse(ServiceFeedbackCreate):
     service_request_id: int
     sentiment_score: Optional[float] = None
     technical_match_score: Optional[float] = None
+    audit_summary: Optional[str] = None
     created_at: datetime
-    
+
     class Config:
         from_attributes = True
