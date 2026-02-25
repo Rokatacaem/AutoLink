@@ -3,3 +3,4 @@ from .vehicle import Vehicle, VehicleCreate, VehicleUpdate
 from .mechanic import Mechanic, MechanicCreate, MechanicUpdate
 from .service import ServiceRequest, ServiceRequestCreate, ServiceRequestUpdate, ServiceFeedbackCreate, ServiceFeedbackResponse
 from .ai import DiagnosisRequest, AIDiagnosticResponse
+from .maintenance import MaintenanceCreate, MaintenanceResponse
