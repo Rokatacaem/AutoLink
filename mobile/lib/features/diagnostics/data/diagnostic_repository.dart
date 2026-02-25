@@ -16,11 +16,13 @@ Future<DiagnosticModel> diagnosticReport(
   required String description,
   int? vehicleId,
   String locale = 'es_CL',
+  bool autoDraftRequest = false,
 }) {
   return ref.watch(diagnosticRepositoryProvider).getDiagnosticReport(
         description: description,
         vehicleId: vehicleId,
         locale: locale,
+        autoDraftRequest: autoDraftRequest,
       );
 }
 
@@ -33,6 +35,7 @@ class DiagnosticRepository {
     required String description,
     int? vehicleId,
     String? locale,
+    bool autoDraftRequest = false,
   }) async {
     try {
       final response = await _dio.post(
@@ -41,6 +44,7 @@ class DiagnosticRepository {
           'description': description,
           if (vehicleId != null) 'vehicle_id': vehicleId,
           if (locale != null) 'locale': locale,
+          'auto_draft_request': autoDraftRequest,
         },
       );
 

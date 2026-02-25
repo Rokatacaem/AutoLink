@@ -24,6 +24,9 @@ class User(Base):
     latitude = Column(Float, nullable=True)
     longitude = Column(Float, nullable=True)
     is_online = Column(Boolean(), default=False)
+    
+    # Push Notifications
+    fcm_token = Column(String, nullable=True)
 
     vehicles = relationship("Vehicle", back_populates="owner")
     mechanic_profile = relationship("Mechanic", back_populates="owner", uselist=False)

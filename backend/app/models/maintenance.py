@@ -7,7 +7,7 @@ class MaintenanceLog(Base):
     __tablename__ = "maintenance_logs"
 
     id = Column(Integer, primary_key=True, index=True)
-    vehicle_id = Column(Integer, ForeignKey("vehicles.id"), nullable=False)
+    vehicle_id = Column(Integer, ForeignKey("vehicle.id"), nullable=False)
     description = Column(String, nullable=False)
     action_taken = Column(String, nullable=False)
     score_impact = Column(Integer, nullable=False) # How much the score improved

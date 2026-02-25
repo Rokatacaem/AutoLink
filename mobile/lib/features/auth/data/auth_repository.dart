@@ -85,6 +85,7 @@ class AuthRepository {
   // Social Auth
   final _googleSignIn = GoogleSignIn(
     scopes: ['email', 'profile'],
+    serverClientId: '533369369704-4fq8bmunjdhjb2is8rrs2g2vml5tth7e.apps.googleusercontent.com',
   );
 
   Future<String> signInWithGoogle() async {

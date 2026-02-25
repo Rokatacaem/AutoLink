@@ -25,82 +25,7 @@ class DiagnosticsScreen extends ConsumerStatefulWidget {
 }
 
 class _DiagnosticsScreenState extends ConsumerState<DiagnosticsScreen> {
-  late ConfettiController _confettiController;
   DiagnosticModel? _activeModel;
-
-  @override
-  void initState() {
-    super.initState();
-    _confettiController = ConfettiController(duration: const Duration(seconds: 3));
-  }
-
-  @override
-  void dispose() {
-    _confettiController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _handleResolve(Fault fault) async {
-    if (widget.vehicleId == null || _activeModel == null) return;
-
-    // Optimistic Update
-    final currentModel = _activeModel!;
-    final impact = _calculateImpact(fault.severity);
-    int newScore = (currentModel.healthScore + impact).clamp(0, 100);
-    
-    // Level Up Check
-    if (currentModel.healthScore < 100 && newScore == 100) {
-      _confettiController.play();
-    }
-
-    final updatedModel = currentModel.copyWith(
-      healthScore: newScore,
-      faults: currentModel.faults.where((f) => f != fault).toList(),
-      urgencyLevel: newScore >= 80 ? UrgencyLevel.low : (newScore >= 50 ? UrgencyLevel.medium : UrgencyLevel.critical),
-    );
-
-    setState(() {
-      _activeModel = updatedModel;
-    });
-    
-    // Sync Global State
-    ref.read(latestDiagnosticProvider.notifier).updateDiagnostic(updatedModel);
-
-    try {
-      await ref.read(maintenanceRepositoryProvider).submitMaintenanceAction(
-        vehicleId: widget.vehicleId!,
-        description: fault.issue,
-        actionTaken: "Resolved by user via App",
-        scoreImpact: impact,
-      );
-      
-       if (mounted) {
-         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text("Resolved! Health +$impact"),
-              backgroundColor: const Color(0xFF00C853),
-              behavior: SnackBarBehavior.floating,
-          ),
-        );
-       }
-
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Error submitting action: $e"), backgroundColor: Colors.red),
-        );
-      }
-    }
-  }
-
-  int _calculateImpact(UrgencyLevel severity) {
-      switch(severity) {
-          case UrgencyLevel.low: return 5;
-          case UrgencyLevel.medium: return 10;
-          case UrgencyLevel.high: return 20;
-          case UrgencyLevel.critical: return 30;
-      }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -120,9 +45,13 @@ class _DiagnosticsScreenState extends ConsumerState<DiagnosticsScreen> {
             _activeModel = next.value;
           });
           // Sync global state on initial load
-          Future.microtask(() => 
-             ref.read(latestDiagnosticProvider.notifier).updateDiagnostic(next.value!)
-          );
+          Future.microtask(() {
+             ref.read(latestDiagnosticProvider.notifier).updateDiagnostic(next.value!);
+             bool isCritical = next.value!.gravityLevel.toUpperCase() == 'CRITICAL';
+             if (next.value!.safetyProtocol.isNotEmpty || isCritical) {
+                 _showSafetyProtocolModal(next.value!);
+             }
+          });
       }
     });
 
@@ -152,7 +81,6 @@ class _DiagnosticsScreenState extends ConsumerState<DiagnosticsScreen> {
             if (_activeModel != null)
                  HealthReportWidget(
                      data: _activeModel!,
-                     onResolve: _handleResolve,
                  )
             else
                 diagnosticAsync.when(
@@ -218,15 +146,163 @@ class _DiagnosticsScreenState extends ConsumerState<DiagnosticsScreen> {
                     ),
                 ),
             
-            // Confetti Overlay
-            ConfettiWidget(
-              confettiController: _confettiController,
-              blastDirectionality: BlastDirectionality.explosive,
-              shouldLoop: false,
-              colors: const [Colors.green, Colors.blue, Colors.pink, Colors.orange, Colors.purple],
-            ),
         ],
       ),
+    );
+  }
+
+  void _showSafetyProtocolModal(DiagnosticModel model) {
+    bool isCritical = model.gravityLevel.toUpperCase() == 'CRITICAL';
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        if (isCritical) {
+          // FULL SCREEN EMERGENCY OVERLAY
+          return Dialog.fullscreen(
+            backgroundColor: const Color(0xFF0A0000),
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const Icon(Icons.warning_amber_rounded, color: Colors.redAccent, size: 80),
+                    const SizedBox(height: 16),
+                    Text(
+                      "EMERGENCIA CRÍTICA",
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.outfit(color: Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 28),
+                    ),
+                    const SizedBox(height: 24),
+                    Text(
+                      "El análisis ha detectado un riesgo vital inminente. Por favor, ejecuta INMEDIATAMENTE los siguientes pasos antes de solicitar rescate mecánico:",
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.outfit(color: Colors.white, fontSize: 16),
+                    ),
+                    const SizedBox(height: 32),
+                    Expanded(
+                      child: ListView(
+                        children: [
+                          ...model.safetyProtocol.map((step) => Padding(
+                                padding: const EdgeInsets.only(bottom: 16.0),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text("🚨 ", style: TextStyle(fontSize: 24)),
+                                    Expanded(child: Text(step, style: GoogleFonts.outfit(color: Colors.white, fontSize: 18, height: 1.4, fontWeight: FontWeight.bold))),
+                                  ],
+                                ),
+                              )),
+                          if (model.preventionTips.isNotEmpty) ...[
+                              const SizedBox(height: 16),
+                              const Divider(color: Colors.redAccent),
+                              const SizedBox(height: 16),
+                              Text("PREVENCIÓN CRÍTICA (No hacer):", style: GoogleFonts.outfit(color: Colors.orangeAccent, fontWeight: FontWeight.bold, fontSize: 16)),
+                              const SizedBox(height: 12),
+                              ...model.preventionTips.map((tip) => Padding(
+                                padding: const EdgeInsets.only(bottom: 8.0),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text("❌ ", style: TextStyle(fontSize: 18)),
+                                    Expanded(child: Text(tip, style: GoogleFonts.outfit(color: Colors.orange[200], fontSize: 16, height: 1.4))),
+                                  ],
+                                ),
+                              )),
+                          ]
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton.icon(
+                      onPressed: () { /* LLAMAR A EMERGENCIAS */ },
+                      icon: const Icon(Icons.emergency, color: Colors.white, size: 28),
+                      label: Text("LLAMAR A URGENCIAS PÚBLICAS (133)", style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        padding: const EdgeInsets.symmetric(vertical: 24),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: Text("HE ASEGURADO LA ZONA (CERRAR)", style: GoogleFonts.outfit(color: Colors.grey, fontWeight: FontWeight.bold, fontSize: 14)),
+                    )
+                  ],
+                ),
+              ),
+            ),
+          );
+        }
+
+        // STANDARD ALERT DIALOG
+        return AlertDialog(
+          backgroundColor: const Color(0xFF1E1E1E),
+          shape: RoundedRectangleBorder(
+             borderRadius: BorderRadius.circular(16),
+             side: const BorderSide(color: Colors.orangeAccent, width: 2)
+          ),
+          title: Row(
+            children: [
+              const Icon(Icons.health_and_safety_rounded, color: Colors.orangeAccent, size: 28),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  "Protocolo de Seguridad",
+                  style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
+                ),
+              )
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "AutoLink Safety Advisor recomienda las siguientes acciones inmediatas:",
+                style: GoogleFonts.outfit(color: Colors.grey[400], fontSize: 14),
+              ),
+              const SizedBox(height: 16),
+              ...model.safetyProtocol.map((step) => Padding(
+                    padding: const EdgeInsets.only(bottom: 8.0),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text("🚨 ", style: TextStyle(fontSize: 16)),
+                        Expanded(child: Text(step, style: GoogleFonts.outfit(color: Colors.white, height: 1.4))),
+                      ],
+                    ),
+                  )),
+              if (model.preventionTips.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  const Divider(color: Colors.grey),
+                  const SizedBox(height: 12),
+                  Text("PREVENCIÓN (No hacer):", style: GoogleFonts.outfit(color: Colors.orangeAccent, fontWeight: FontWeight.bold, fontSize: 12)),
+                  const SizedBox(height: 8),
+                  ...model.preventionTips.map((tip) => Padding(
+                    padding: const EdgeInsets.only(bottom: 4.0),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text("❌ ", style: TextStyle(fontSize: 14)),
+                        Expanded(child: Text(tip, style: GoogleFonts.outfit(color: Colors.grey[300], fontSize: 13, height: 1.4))),
+                      ],
+                    ),
+                  )),
+              ]
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text("ENTENDIDO", style: GoogleFonts.outfit(color: const Color(0xFF00E5FF), fontWeight: FontWeight.bold)),
+            )
+          ],
+        );
+      }
     );
   }
 }

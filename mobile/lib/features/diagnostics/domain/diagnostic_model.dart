@@ -3,32 +3,17 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'diagnostic_model.freezed.dart';
 part 'diagnostic_model.g.dart';
 
-@JsonEnum(alwaysCreate: true)
-enum UrgencyLevel {
-  @JsonValue('Low') low,
-  @JsonValue('Medium') medium,
-  @JsonValue('High') high,
-  @JsonValue('Critical') critical,
-}
-
-@freezed
-class Fault with _$Fault {
-  const factory Fault({
-    required String issue,
-    required UrgencyLevel severity,
-    String? description,
-  }) = _Fault;
-
-  factory Fault.fromJson(Map<String, dynamic> json) => _$FaultFromJson(json);
-}
-
 @freezed
 class DiagnosticModel with _$DiagnosticModel {
   const factory DiagnosticModel({
-    @JsonKey(name: 'health_score') required int healthScore,
-    @JsonKey(name: 'urgency_level') required UrgencyLevel urgencyLevel,
-    required List<Fault> faults,
-    @JsonKey(name: 'recommended_actions') required List<String> recommendedActions,
+    @JsonKey(name: 'diagnosis_summary') required String diagnosisSummary,
+    @JsonKey(name: 'safety_protocol', defaultValue: []) required List<String> safetyProtocol,
+    @JsonKey(name: 'prevention_tips', defaultValue: []) required List<String> preventionTips,
+    @JsonKey(name: 'gravity_level', defaultValue: 'Low') required String gravityLevel,
+    @JsonKey(name: 'technical_details') required String technicalDetails,
+    @JsonKey(name: 'suggested_parts') required List<String> suggestedParts,
+    @JsonKey(name: 'estimated_labor_hours') required double estimatedLaborHours,
+    @JsonKey(name: 'required_specialty') required String requiredSpecialty,
   }) = _DiagnosticModel;
 
   factory DiagnosticModel.fromJson(Map<String, dynamic> json) => _$DiagnosticModelFromJson(json);
