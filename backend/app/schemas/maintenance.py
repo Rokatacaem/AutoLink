@@ -3,8 +3,8 @@ from typing import Optional
 from datetime import datetime
 
 class MaintenanceBase(BaseModel):
-    description: String
-    action_taken: String
+    description: str
+    action_taken: str
     score_impact: int
 
 class MaintenanceCreate(MaintenanceBase):
