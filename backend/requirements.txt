@@ -20,3 +20,4 @@ requests>=2.31.0
 firebase-admin>=6.5.0
 stripe>=8.0.0
 mercadopago>=2.2.0
+mangum>=0.17.0

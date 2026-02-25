@@ -1,12 +1,15 @@
 """
 Vercel Serverless Entry Point.
-This file re-exports the FastAPI ASGI app so Vercel can discover it
-inside the required `api/` directory.
+Mangum wraps the FastAPI ASGI app so Vercel can invoke it as a standard
+serverless function handler.
 """
 import sys
 import os
 
-# Ensure the backend root is on the path so `app` package resolves correctly
+# Add the backend root to the path so `app` package resolves correctly
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from app.main import app  # noqa: F401  — exposed as ASGI handler for Vercel
+from mangum import Mangum
+from app.main import app
+
+handler = Mangum(app, lifespan="off")
